@@ -35,7 +35,7 @@ python3 quickstart/python/app.py                       # local mini-site (chat +
 
 # A2A (address of the /a2a endpoint instead of /mcp)
 export BEPLEEZ_A2A_URL="https://<host>/agents/<seller-id>/a2a"
-python3 a2a/app.py --budget 118                        # signatures of the seller's acts are checked (pip install cryptography)
+python3 a2a/app.py --budget 118 --gradual                  # signatures of the seller's acts are checked (pip install cryptography)
 ```
 
 Edit `PRODUCT` at the top of each `app.py` to try your own product, or take one from [catalog/catalog.json](catalog/catalog.json). The product always comes from your backend: the sandbox has no catalogue to browse.
@@ -53,7 +53,7 @@ Edit `PRODUCT` at the top of each `app.py` to try your own product, or take one 
 3. `accept_offer`: only after the shopper explicitly agrees. The response carries `agreement.deal_token`.
 4. **Verify the token on your server** before charging: see [verify-token/](verify-token/).
 
-A seller turn takes 9 to 17 s (the first up to 60 s): pass `async: true`, then poll `get_thread` until `status` is `ready`. Only a `firm` offer can be accepted. If the offer has `options` (a menu), show every option and pass the chosen `option_id`.
+A seller turn takes 9 to 30 s (the first, the opening, up to 60 s): pass `async: true`, then poll `get_thread` until `status` is `ready`. Only a `firm` offer can be accepted. If the offer has `options` (a menu), show every option and pass the chosen `option_id`.
 
 The seller states nothing that is not in the product `description`. You see the acts exchanged, never the seller's internal reasoning.
 
