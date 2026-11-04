@@ -24,4 +24,19 @@ With a budget the seller can reach, the run ends with an agreement; with a budge
 - Every seller act carries `signature`: a detached JWS, **ES256**, over the JCS (RFC 8785) form of the act without its `signature` field. The public keys are in the `keys` array of the seller's UCP profile, at `/agents/<seller-id>/.well-known/ucp`. `app.py` implements the check; do the same on your server before honouring the price.
 - A seller turn takes 9 to 30 s; configure a timeout of at least 150 s on the call.
 
+## The seller asks a question
+
+From time to time a response contains, after its `offer` or `counter`, a separate act `question` (signed like the others), for example `{"topic": "buyer_batna"}` with the question in `text` ("Have you seen a comparable drill elsewhere?"). The same question is usually already written at the end of the preceding offer's text: show it once.
+
+- **Answering is optional.** An unanswered question never blocks the thread, and a firm offer already issued stays valid. You can simply send your next `counter` or `accept`.
+- **To answer**, send an `answer` act whose `in_reply_to` is the `message_id` of the question, with the words in `text`. `body.data` can stay empty (`{"data": {}}`): the seller reads your `text`.
+- **What comes back**: a new `offer` (firm, in our test) that takes your answer into account. Run on the sandbox: after "it is for a weekend project, I need it this week", the seller answered with a new firm offer of 113.47 EUR (previous firm offer: 118.84 EUR).
+- **Never answer with the shopper's maximum budget or other private limits**: tell the seller about the situation (use, deadline, alternative seen), not your ceiling.
+
+```python
+question = next((a for a in acts if a["act"] == "question"), None)
+if question:
+    acts = t.send(t.act("answer", {"data": {}}, "It is for a weekend project, I need it this week.", question["message_id"]))
+```
+
 Errors come back as a JSON-RPC `error` (HTTP status in `error.data.status`): `401 invalid_api_key`, `429 quota_exceeded`, `422` for a malformed act or missing product record. The full list of codes is in [../ERRORS.md](../ERRORS.md) (MCP names; the meanings are the same).
