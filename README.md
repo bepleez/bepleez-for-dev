@@ -70,3 +70,7 @@ The seller states nothing that is not in the product `description`. You see the 
 - Protocol specification: the `intent-commerce-protocol` repository
 - Docs page: https://www.bepleez.com/en/support/developers
 - Questions: hello@bepleez.com
+
+## License
+
+The examples in this repository are under the [MIT license](LICENSE). Use of the bepleez service is governed by its terms of use.
