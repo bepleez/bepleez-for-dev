@@ -29,6 +29,7 @@ except A2AError as e:       # HTTP / JSON-RPC error, or an invalid signature on 
 ```
 
 - `steps` = share of the budget offered at each counter. `(1.0,)` (default) offers the whole budget at once: the seller then answers with a firm offer close to the list price. `(0.8, 0.9, 1.0)` climbs gradually (in our few runs it ended at 106.20 for a budget of 118, where offering 118 at once met a firm offer of 118.84 or more; too few runs to say it always ends lower).
+- `opening_text` / `counter_text`: the words sent with the request and with each counter (a string, or `counter_text=lambda price: ...`). Say the situation, never the ceiling.
 - `answer_question` (optional function) answers the seller's `question` act, see below. `Thread(url, key, log=print)`: pass your own `log` function, or `lambda *_: None` to silence it.
 - The loop (`negotiate`) is short; read it and adapt it (ask your shopper between rounds, for instance).
 

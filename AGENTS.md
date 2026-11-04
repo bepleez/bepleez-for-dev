@@ -21,7 +21,7 @@ result = negotiate(Thread(url, key), product, budget=118, steps=(0.8, 0.9, 1.0))
 - **Never print, log or commit the key.** Load `.env` yourself; keep `.env` out of git; never put the key in a web page or mobile app.
 - **The product record comes from the developer's backend** and is frozen when the negotiation opens (`sku`, `title`, `price` > 0, `currency`, `description`, `stock`). The seller states nothing that is not in `description`.
 - **Only a firm offer can be accepted.** Never accept an indicative one. Accept only if the price is within the shopper's budget.
-- **Never put the shopper's maximum budget in a message** to the seller (it is private); say the situation (use, deadline), not the ceiling.
+- **Never write the shopper's maximum budget in a message** to the seller (it is private): say the situation (use, deadline, alternative seen), not the ceiling (`opening_text` and `counter_text` of `negotiate()`). The price of a counter-offer is in the act itself, so offering the full budget shows it: keep the last step below 1.0 if the ceiling matters.
 - The seller may send a `question` act. Answering is optional (`negotiate(..., answer_question=fn)`); if you answer, set `in_reply_to` to the question's `message_id`.
 - The test plan allows 100 negotiations in total and 50 a day. Do not loop over many products "to see": each one counts.
 - Errors raise `A2AError` (`401 invalid_api_key`: wrong key or wrong address; `429 quota_exceeded`; `422`: malformed act or missing product record). Codes are listed in `ERRORS.md` (MCP names; the meanings are the same).

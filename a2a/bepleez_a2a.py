@@ -150,17 +150,21 @@ class Thread:
 
 # --- the whole negotiation ----------------------------------------------------------------------------------------
 
-def negotiate(thread, product, budget, steps=(1.0,), answer_question=None, max_rounds=6):
+def negotiate(thread, product, budget, steps=(1.0,), answer_question=None, max_rounds=6, opening_text=None, counter_text=None):
     """Negotiate `product` (dict: sku, title, price > 0, currency, description, stock) for a shopper who pays `budget` at most.
 
     steps: share of the budget offered at each counter, e.g. (0.8, 0.9, 1.0) to climb gradually; the last one is repeated.
     answer_question: optional function(question_act) -> text. Called when the seller sends a `question` act; the text is
         sent as an `answer`. A question that exists only in the offer's text needs no answer: the next counter is enough.
+    opening_text / counter_text: the words sent with the request and with each counter-offer: a string, or for counter_text a
+        function(price) -> str. Put the shopper's SITUATION there (use, deadline, alternative seen), never "my maximum is X".
+        The defaults are neutral. Note that the price of a counter-offer is in the act itself: offering your full budget as a
+        counter shows it, so keep the last step below 1.0 if the ceiling matters to you.
     Returns a dict: status ("agreed" | "walked_away" | "no_offer" | "no_commit"), and for an agreement price, currency,
     code, expires_at, list_price. A firm offer above the budget is countered while steps remain, then the shopper leaves.
     """
     acts = thread.send(thread.act("request", {"need": {"items": [{"sku": product["sku"], "quantity": 1}]}},
-                                  f"Hi, I'm interested in the {product['title']}. Is there a better price?"), product=product)
+                                  opening_text or f"Hi, I'm interested in the {product['title']}. Is there a better price?"), product=product)
     n = 0
     for _ in range(max_rounds):
         question = next((a for a in acts if a["act"] == "question"), None)
@@ -183,5 +187,6 @@ def negotiate(thread, product, budget, steps=(1.0,), answer_question=None, max_r
             return {"status": "walked_away", "last_firm_offer": price}
         mine = round(budget * steps[min(n, len(steps) - 1)], 2)
         n += 1
-        acts = thread.send(thread.counter(offer, mine, f"I can do {mine:.0f} EUR."))
+        text = counter_text(mine) if callable(counter_text) else (counter_text or "Here is my counter-offer.")
+        acts = thread.send(thread.counter(offer, mine, text))
     return {"status": "walked_away"}
