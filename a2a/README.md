@@ -28,7 +28,7 @@ except A2AError as e:       # HTTP / JSON-RPC error, or an invalid signature on 
 #      or {"status": "walked_away", "last_firm_offer": 183.33} / {"status": "no_offer"} / {"status": "no_commit"}
 ```
 
-- `steps` = share of the budget offered at each counter. `(1.0,)` (default) offers the whole budget at once: the seller then answers with a firm offer close to the list price. `(0.8, 0.9, 1.0)` climbs gradually and usually ends lower.
+- `steps` = share of the budget offered at each counter. `(1.0,)` (default) offers the whole budget at once: the seller then answers with a firm offer close to the list price. `(0.8, 0.9, 1.0)` climbs gradually (in our few runs it ended at 106.20 for a budget of 118, where offering 118 at once met a firm offer of 118.84 or more; too few runs to say it always ends lower).
 - `answer_question` (optional function) answers the seller's `question` act, see below. `Thread(url, key, log=print)`: pass your own `log` function, or `lambda *_: None` to silence it.
 - The loop (`negotiate`) is short; read it and adapt it (ask your shopper between rounds, for instance).
 
@@ -51,7 +51,7 @@ except A2AError as e:       # HTTP / JSON-RPC error, or an invalid signature on 
 From time to time a response contains, after its `offer` or `counter`, a separate act `question` (signed like the others), for example `{"topic": "buyer_batna"}` with the question in `text` ("Have you seen a comparable drill elsewhere?"). The same question is usually already written at the end of the preceding offer's text: show it once. A question can also exist **only in the text** of an offer, with no `question` act: then there is nothing to answer by reference, and your next `counter` (or a `say` with your words) is enough.
 
 - **Answering is optional.** An unanswered question never blocks the thread, and a firm offer already issued stays valid. You can simply send your next `counter` or `accept`.
-- **To answer**, send an `answer` act whose `in_reply_to` is the `message_id` of the question (always set it: an `answer` that points at no question is not tied to anything), with the words in `text`. `body.data` can stay empty (`{"data": {}}`): the seller reads your `text`.
+- **To answer**, send an `answer` act whose `in_reply_to` is the `message_id` of the question (always set it; we have not tested an `answer` without it), with the words in `text`. `body.data` can stay empty (`{"data": {}}`): the seller reads your `text`.
 - **What comes back**: a new `offer` (firm, in our test) that takes your answer into account. Run on the sandbox: after "it is for a weekend project, I need it this week", the seller answered with a new firm offer of 113.47 EUR (previous firm offer: 118.84 EUR).
 - **Never answer with the shopper's maximum budget or other private limits**: tell the seller about the situation (use, deadline, alternative seen), not your ceiling.
 

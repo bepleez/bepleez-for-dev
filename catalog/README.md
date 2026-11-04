@@ -9,7 +9,7 @@ with a call to your own database or catalogue API. Nothing else changes.
 
 ## Budgets to try (observed on the sandbox, not guaranteed)
 
-The seller's limit is set by the merchant and can change; these are what we saw, so you can pick test budgets that end in an agreement, a near miss, or a walk-away. Climbing in steps `(0.8, 0.9, 1.0)` gets lower prices than offering the budget at once.
+The seller's limit is set by the merchant and can change; these are what we saw, so you can pick test budgets that end in an agreement, a near miss, or a walk-away. Climbing in steps `(0.8, 0.9, 1.0)` or offering the whole budget at once can end differently; try both.
 
 | sku | list price | agreement seen at | no agreement seen at |
 |---|---|---|---|
