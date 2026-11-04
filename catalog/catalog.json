@@ -1,0 +1,10 @@
+[
+  {"sku": "DRILL-18V", "title": "18V cordless drill", "price": 129.9, "currency": "EUR",
+   "description": "New, 2-year warranty, 2 batteries and a charger.", "stock": 40},
+  {"sku": "VAC-ROBOT", "title": "Robot vacuum cleaner", "price": 249.0, "currency": "EUR",
+   "description": "New, 1-year warranty, 90 min battery, app control.", "stock": 12},
+  {"sku": "KETTLE-1L", "title": "Electric kettle 1 L", "price": 39.9, "currency": "EUR",
+   "description": "New, stainless steel, 2-year warranty.", "stock": 80},
+  {"sku": "HEADPHONES-NC", "title": "Wireless noise-cancelling headphones", "price": 189.0, "currency": "EUR",
+   "description": "New, 2-year warranty, 30 h battery, carrying case.", "stock": 25}
+]

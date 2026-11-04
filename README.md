@@ -38,7 +38,7 @@ export BEPLEEZ_A2A_URL="https://<host>/agents/<seller-id>/a2a"
 python3 a2a/app.py --budget 118                        # signatures of the seller's acts are checked (pip install cryptography)
 ```
 
-Edit `PRODUCT` at the top of each `app.py` to try your own product.
+Edit `PRODUCT` at the top of each `app.py` to try your own product, or take one from [catalog/catalog.json](catalog/catalog.json). The product always comes from your backend: the sandbox has no catalogue to browse.
 
 ## Keep the key safe
 
@@ -63,6 +63,7 @@ The seller states nothing that is not in the product `description`. You see the 
 
 ## More
 
+- [catalog/](catalog/): sample product list to send with your calls (the sandbox has no catalogue of its own)
 - [a2a/README.md](a2a/README.md): A2A in detail
 - [quickstart/curl.md](quickstart/curl.md): the same calls with curl
 - [ERRORS.md](ERRORS.md): error codes and what to do
