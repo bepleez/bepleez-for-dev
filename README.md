@@ -40,6 +40,10 @@ python3 a2a/app.py --budget 118 --gradual                  # signatures of the s
 
 Edit `PRODUCT` at the top of each `app.py` to try your own product, or take one from [catalog/catalog.json](catalog/catalog.json). The product always comes from your backend: the sandbox has no catalogue to browse.
 
+## Using a coding agent?
+
+Point it at this repository: [AGENTS.md](AGENTS.md) tells it where to start, what not to get wrong, and gives a prompt to paste.
+
 ## Keep the key safe
 
 - The key lives on your **server** only: never in a web page, a mobile app or browser JavaScript.
