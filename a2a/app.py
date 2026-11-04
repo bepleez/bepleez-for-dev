@@ -120,11 +120,12 @@ class Thread:
         if text: a["text"], a["lang"] = text, "en"
         return a
 
-    def send(self, act, with_product=False):
+    def send(self, act, product=None):
+        """Send one act. `product` (a dict like PRODUCT) goes with the opening `request` only."""
         message = {"kind": "message", "role": "user", "messageId": act["message_id"], "contextId": self.session,
                    "parts": [{"kind": "data", "data": {CAPABILITY: act}}] + ([{"kind": "text", "text": act["text"]}] if act.get("text") else [])}
-        if with_product:
-            message["metadata"] = {PRODUCT_KEY: PRODUCT}
+        if product:
+            message["metadata"] = {PRODUCT_KEY: product}
         status, out = http("POST", self.url, {"jsonrpc": "2.0", "id": str(uuid.uuid4()), "method": "message/send", "params": {"message": message}}, self.key)
         if status != 200 or "error" in (out or {}):
             raise SystemExit(f"A2A error HTTP {status}: {json.dumps((out or {}).get('error') or out)[:300]}")
@@ -161,7 +162,7 @@ def main():
     t = Thread(url, key)
     print(f"Seller keys published in its UCP profile: {len(t.jwks)}")
     print(f"1. request ({PRODUCT['title']}, list price {PRODUCT['price']})")
-    acts = t.send(t.act("request", {"need": {"items": [{"sku": PRODUCT["sku"], "quantity": 1}]}}, f"Hi, I need a drill this weekend, my budget is {args.budget:.0f} EUR."), with_product=True)
+    acts = t.send(t.act("request", {"need": {"items": [{"sku": PRODUCT["sku"], "quantity": 1}]}}, f"Hi, I need a drill this weekend, my budget is {args.budget:.0f} EUR."), product=PRODUCT)
     for i in range(5):
         offer = next((a for a in reversed(acts) if a["act"] in ("offer", "counter") and (a.get("body") or {}).get("offer")), None)
         if offer is None:

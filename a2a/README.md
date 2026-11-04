@@ -10,6 +10,10 @@ python3 app.py --budget 118
 
 With a budget the seller can reach, the run ends with an agreement; with a budget below its limit, the shopper walks away after the firm offer.
 
+## Use it from your own code
+
+`app.py` can be imported: `from app import Thread`. `Thread(url, key)` discovers the seller; `t.send(t.act("request", ...), product=your_product)` opens the negotiation (the product goes with that first act only); `t.counter(offer, price, text)` and `t.act("accept", ...)` do the rest. `main()` in `app.py` shows the whole loop.
+
 ## What goes on the wire
 
 - `POST <A2A url>` with `Authorization: Bearer <key>`, JSON-RPC `message/send` (or `SendMessage`). The act is a `data` Part under the key `com.bepleez.shopping.intent`; the text is a separate `text` Part.
