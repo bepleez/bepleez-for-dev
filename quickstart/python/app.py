@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-"""App d'essai autonome du sandbox bepleez for dev (MCP, clé Bearer). Python 3, aucune dépendance.
+"""bepleez over MCP: a complete negotiation from your backend (Bearer key). Python 3, standard library only.
 
-Elle joue le rôle du backend d'un développeur : elle ne connaît que l'adresse MCP et la clé, données par l'environnement.
+It plays the role of a developer's backend: it only knows the MCP address and the key, given by the environment.
 
-    export BEPLEEZ_MCP_URL="https://bepleez-staging.up.railway.app/agents/<id du vendeur>/mcp"
-    export BEPLEEZ_API_KEY="bpz_test_..."          # affichée une fois dans Ma boutique → Intégration
+    export BEPLEEZ_MCP_URL="https://<host>/agents/<seller-id>/mcp"
+    export BEPLEEZ_API_KEY="bpz_test_..."          # shown once in dashboard > My shop > Integration
 
-    python3 app.py --auto                # négociation complète dans le terminal
-    python3 app.py --auto --budget 100   # budget de l'acheteur (défaut 105)
-    python3 app.py                       # mini-site local http://127.0.0.1:8000 (chat + acceptation)
+    python3 app.py --auto                # full negotiation in the terminal
+    python3 app.py --auto --budget 100   # shopper's budget (default 105)
+    python3 app.py                       # local mini-site http://127.0.0.1:8000 (chat + acceptance)
 
-Le produit (fiche gelée à l'ouverture) est défini en haut du fichier : modifiez PRODUCT pour essayer d'autres cas.
-La clé n'est jamais affichée ni écrite."""
+The product (record frozen when the negotiation opens) is defined at the top of the file: edit PRODUCT to try other cases.
+The key is never printed or written."""
 import argparse
 import json
 import os
@@ -25,10 +25,10 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 PRODUCT = {
     "sku": "DEMO-1",
-    "title": "Perceuse visseuse 18V",
+    "title": "18V cordless drill",
     "price": 129.9,
     "currency": "EUR",
-    "description": "Neuve, garantie 2 ans, livrée avec 2 batteries et un chargeur.",
+    "description": "New, 2-year warranty, 2 batteries and a charger.",
     "stock": 40,
 }
 UA = "Mozilla/5.0 (bepleez sandbox app)"
@@ -73,19 +73,19 @@ def get_json(url: str):
 
 
 class Shop:
-    """État d'une négociation : un fil, la dernière offre, les messages échangés."""
+    """State of a negotiation: one thread, the latest offer, the messages exchanged."""
 
     def __init__(self, mcp: Mcp):
         self.mcp, self.thread, self.offer, self.agreement, self.log = mcp, "", {}, None, []
 
     def _absorb(self, state: dict):
         for m in state.get("seller_messages") or []:
-            self.log.append({"from": "vendeur", "text": m})
+            self.log.append({"from": "seller", "text": m})
         self.offer = state.get("current_offer") or self.offer
         self.agreement = state.get("agreement") or self.agreement
 
     def start(self, message: str):
-        self.log.append({"from": "acheteur", "text": message})
+        self.log.append({"from": "buyer", "text": message})
         d = self.mcp.tool("request_offer", {"product": PRODUCT, "message": message, "async": True,
                                             "idempotency_key": "app-open-" + uuid.uuid4().hex[:12]})
         self.thread = d["thread_id"]
@@ -96,10 +96,10 @@ class Shop:
                 self._absorb(state)
                 return
             time.sleep(3)
-        raise McpError("timeout", "le vendeur n'a pas répondu en 150 s")
+        raise McpError("timeout", "the seller did not answer within 150 s")
 
     def say(self, message: str, price=None):
-        self.log.append({"from": "acheteur", "text": message})
+        self.log.append({"from": "buyer", "text": message})
         args = {"thread_id": self.thread, "message": message, "idempotency_key": "app-counter-" + uuid.uuid4().hex[:12]}
         if price is not None:
             args["price"] = price
@@ -135,36 +135,36 @@ def price_in(text: str):
 
 def run_auto(mcp: Mcp, budget: float) -> int:
     shop = Shop(mcp)
-    print(f"Produit : {PRODUCT['title']} à {PRODUCT['price']} {PRODUCT['currency']} — budget de l'acheteur : {budget:g}")
-    shop.start(f"Bonjour, je cherche ce produit, mon budget est de {budget:g} €.")
+    print(f"Product: {PRODUCT['title']} at {PRODUCT['price']} {PRODUCT['currency']} — shopper's budget: {budget:g}")
+    shop.start(f"Hi, I'm looking for this product, my budget is {budget:g} EUR.")
     show(shop, "Ouverture")
     for turn in range(1, 7):
         total = float((shop.offer.get("total") or {}).get("amount", 0) or 0)
         if shop.offer.get("binding") == "firm" and 0 < total <= budget:
             break
-        shop.say(f"Je peux aller jusqu'à {budget:g} €, pas plus.", price=budget)
+        shop.say(f"I can go up to {budget:g} EUR, not more.", price=budget)
         show(shop, f"Tour {turn}")
     total = float((shop.offer.get("total") or {}).get("amount", 0) or 0)
     if shop.offer.get("binding") != "firm" or not 0 < total <= budget:
-        print(f"\nPas d'accord dans le budget après 6 tours (dernière offre : {shop.offer.get('total')}).")
+        print(f"\nNo agreement within the budget after 6 rounds (last offer: {shop.offer.get('total')}).")
         return 1
-    print(f"\nOffre ferme à {total:g} : j'accepte.")
+    print(f"\nFirm offer at {total:g}: I accept.")
     checks = shop.accept()
     a = shop.agreement or {}
-    print("Accord :", {k: a.get(k) for k in ("price", "currency", "sku", "expires_at")})
-    print("Jeton d'accord reçu :", bool(a.get("deal_token")))
-    print("Vérification :", json.dumps(checks))
+    print("Agreement:", {k: a.get(k) for k in ("price", "currency", "sku", "expires_at")})
+    print("Agreement token received:", bool(a.get("deal_token")))
+    print("Checks:", json.dumps(checks))
     return 0 if a.get("deal_token") else 1
 
 
 def show(shop: Shop, title: str = ""):
-    """Affiche tout ce qui s'est dit depuis le dernier appel (acheteur et vendeur, textes complets) puis l'offre en cours."""
+    """Print everything said since the last call (shopper and seller, full texts) then the current offer."""
     import textwrap
     done = getattr(shop, "_shown", 0)
     if title:
         print(f"\n── {title} " + "─" * max(0, 60 - len(title)))
     for e in shop.log[done:]:
-        who = "Acheteur" if e["from"] == "acheteur" else "Vendeur "
+        who = "Shopper" if e["from"] == "buyer" else "Seller  "
         body = textwrap.fill(e["text"], width=96, initial_indent="", subsequent_indent=" " * 13)
         print(f"  {who} : {body}")
     shop._shown = len(shop.log)
@@ -185,19 +185,19 @@ PAGE = """<!doctype html><meta charset=utf-8><meta name=viewport content="width=
 .offer{border:1px solid #888;padding:.6rem;border-radius:10px;margin:.6rem 0}input{width:70%;padding:.5rem}button{padding:.5rem 1rem}
 pre{background:#f4f4f4;padding:.6rem;overflow:auto}</style>
 <h1 id=t></h1><div id=log></div><div id=offer></div>
-<form id=f><input id=i autocomplete=off placeholder="Votre message (un montant en € est lu comme contre-offre)"> <button>Envoyer</button></form>
+<form id=f><input id=i autocomplete=off placeholder="Your message (an amount in EUR is read as a counter-offer)"> <button>Send</button></form>
 <pre id=out></pre>
 <script>
 const $=id=>document.getElementById(id);let started=false;
 async function post(p,b){const r=await fetch(p,{method:'POST',body:JSON.stringify(b||{})});return r.json()}
-function render(s){$('t').textContent=s.product;$('log').innerHTML=s.log.map(e=>`<div class="m ${e.from=='vendeur'?'v':''}">${e.text}</div>`).join('');
+function render(s){$('t').textContent=s.product;$('log').innerHTML=s.log.map(e=>`<div class="m ${e.from=='seller'?'v':''}">${e.text}</div>`).join('');
  const o=s.offer||{};let h='';if(o.total){h=`<div class=offer>Offre ${o.binding||''} : <b>${o.total.amount} ${o.total.currency}</b>`;
  if(o.binding=='firm'&&!s.agreement)h+=` <button onclick="acc()">Accepter</button>`;h+='</div>'}$('offer').innerHTML=h;
- if(s.error)$('out').textContent='Erreur : '+s.error;else if(s.checks)$('out').textContent='Accord : '+JSON.stringify(s.agreement)+'\\nVérification : '+JSON.stringify(s.checks)}
-$('f').onsubmit=async e=>{e.preventDefault();const m=$('i').value.trim();if(!m)return;$('i').value='';$('out').textContent='Le vendeur réfléchit…';
+ if(s.error)$('out').textContent='Error: '+s.error;else if(s.checks)$('out').textContent='Agreement: '+JSON.stringify(s.agreement)+'\\nChecks: '+JSON.stringify(s.checks)}
+$('f').onsubmit=async e=>{e.preventDefault();const m=$('i').value.trim();if(!m)return;$('i').value='';$('out').textContent='The seller is thinking…';
  render(await post(started?'/api/say':'/api/start',{message:m}));started=true;if(!$('out').textContent.startsWith('Erreur'))$('out').textContent=''};
 async function acc(){$('out').textContent='Acceptation…';render(await post('/api/accept'))}
-$('t').textContent='Écrivez votre premier message (ex : « Bonjour, je cherche une perceuse, budget 110 € »)';
+$('t').textContent='Write your first message (e.g. “Hi, I need a drill, budget 110 EUR”)';
 </script>"""
 
 
@@ -239,20 +239,20 @@ def make_handler(shop: Shop):
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="App d'essai du sandbox bepleez for dev")
-    ap.add_argument("--auto", action="store_true", help="négociation complète dans le terminal")
-    ap.add_argument("--budget", type=float, default=105.0, help="budget de l'acheteur en mode --auto")
+    ap.add_argument("--auto", action="store_true", help="full negotiation in the terminal")
+    ap.add_argument("--budget", type=float, default=105.0, help="shopper's budget in --auto mode")
     ap.add_argument("--port", type=int, default=8000)
     args = ap.parse_args()
     url, key = os.environ.get("BEPLEEZ_MCP_URL", "").strip(), os.environ.get("BEPLEEZ_API_KEY", "").strip()
     if not url or not key:
-        print("Variables BEPLEEZ_MCP_URL et BEPLEEZ_API_KEY requises (voir l'en-tête du fichier).")
+        print("BEPLEEZ_MCP_URL and BEPLEEZ_API_KEY are required (see the header of this file).")
         return 2
     mcp = Mcp(url, key)
     try:
         if args.auto:
             return run_auto(mcp, args.budget)
         server = ThreadingHTTPServer(("127.0.0.1", args.port), make_handler(Shop(mcp)))
-        print(f"Mini-site sur http://127.0.0.1:{args.port} (Ctrl+C pour arrêter)")
+        print(f"Mini-site on http://127.0.0.1:{args.port} (Ctrl+C to stop)")
         server.serve_forever()
     except McpError as e:
         print(f"Erreur du serveur : {e}")
