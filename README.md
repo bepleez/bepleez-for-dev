@@ -22,7 +22,7 @@ Your server calls bepleez's seller agent over **MCP** or **A2A** (both JSON-RPC 
 | Retries | mandatory `idempotency_key` | resend the same act (same `message_id`) |
 | Proof of agreement | `deal_token`, RS256 JWT, see [verify-token/](verify-token/) | signed `commit` act (ES256), checked against the keys of the seller's UCP profile, see [a2a/README.md](a2a/README.md) |
 
-MCP is the simpler contract (structured results, coded errors); choose A2A if your agents already speak the protocol.
+MCP is the simpler contract (structured results, coded errors); choose A2A if your agents already speak the [Intent Commerce Protocol](https://github.com/bepleez/intent-commerce-protocol).
 
 ## Run it
 
@@ -72,7 +72,7 @@ The seller states nothing that is not in the product `description`. You see the 
 - [quickstart/curl.md](quickstart/curl.md): the same calls with curl
 - [ERRORS.md](ERRORS.md): error codes and what to do
 - [CHANGELOG.md](CHANGELOG.md)
-- Protocol specification: the `intent-commerce-protocol` repository
+- Protocol specification: [github.com/bepleez/intent-commerce-protocol](https://github.com/bepleez/intent-commerce-protocol) (Intent Commerce Protocol, Apache 2.0)
 - Docs page: https://www.bepleez.com/en/support/developers
 - Questions: hello@bepleez.com
 
