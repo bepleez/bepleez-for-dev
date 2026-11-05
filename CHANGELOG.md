@@ -13,7 +13,7 @@ This page tells you which version of the bepleez test API you are talking to, wh
 
 **What changes the version (breaking).** A new `contract_version` is issued when an existing tool, argument, result field or error code is removed, renamed, or changes meaning or type; when a required argument is added; or when a behaviour you may rely on changes (for example, idempotency or the rule that only a firm offer can be accepted). The A2A protocol `version` changes on the same kind of change to an act.
 
-**What does not (additive).** New tools, new optional arguments, new fields in a result, new error codes, new values in an open list (such as the `topic` of a question), and wording changes of seller messages are added **without a new version**. Write your code to ignore fields it does not know and to treat an unknown error code as a generic failure.
+**What does not (additive).** New tools, new optional arguments, new fields in a result, new error codes, new values in an open list (such as the `reason` of a `close`), and wording changes of seller messages are added **without a new version**. Write your code to ignore fields it does not know and to treat an unknown error code as a generic failure.
 
 **How long a version stays usable.** A version remains usable for **12 months after the next one is published**. Its retirement is announced **at least 90 days in advance**, in this file and by e-mail to the address of your account. This is a commitment about the contract, not about the availability of the test environment, which can be interrupted or reset at any time.
 

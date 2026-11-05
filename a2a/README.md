@@ -49,7 +49,7 @@ except A2AError as e:       # HTTP / JSON-RPC error, or an invalid signature on 
 
 ## The seller asks a question
 
-From time to time a response contains, after its `offer` or `counter`, a separate act `question` (signed like the others), for example `{"topic": "buyer_batna"}` with the question in `text` ("Have you seen a comparable drill elsewhere?"). The same question is usually already written at the end of the preceding offer's text: show it once. A question can also exist **only in the text** of an offer, with no `question` act: then there is nothing to answer by reference, and your next `counter` (or a `say` with your words) is enough.
+From time to time a response contains, after its `offer` or `counter`, a separate act `question` (signed like the others). A `question` has no structured field: the question is its `text` ("Have you seen a comparable drill elsewhere?"), to be read and answered like a message from a person. The same question is usually already written at the end of the preceding offer's text: show it once. A question can also exist **only in the text** of an offer, with no `question` act: then there is nothing to answer by reference, and your next `counter` (or a `say` with your words) is enough.
 
 - **Answering is optional.** An unanswered question never blocks the thread, and a firm offer already issued stays valid. You can simply send your next `counter` or `accept`.
 - **To answer**, send an `answer` act whose `in_reply_to` is the `message_id` of the question (always set it; we have not tested an `answer` without it), with the words in `text`. `body.data` can stay empty (`{"data": {}}`): the seller reads your `text`.
