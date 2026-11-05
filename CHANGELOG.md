@@ -39,6 +39,7 @@ A2A (`/agents/<seller-id>/a2a`, same key): acts of protocol version `2026-10-25`
 
 ### Changes within `2026-11-02` (additive or fixes, no new version)
 
+- **2026-11-05 — removed fields (A2A acts, protocol v0.11).** Breaking by the rule above, made **before any external use** of the contract, so the act `version` stays `2026-10-25`. The `question` act no longer has a structured `topic`: the question is its `text` (mandatory), to be read and answered like a message from a person; the act has no `body`. Offers no longer carry `last_offer`, and acts no longer carry `declared`. In `close`, `reject` and `decline_to_offer` the `reason` is optional and, when present, comes from a small public registry (`not_awarded`, `no_agreement`, `agreement_reached`, `expired`, `withdrawn`, `cannot_serve`, `out_of_stock`, `no_longer_needed`, `policy`, `round_limit`, `other`). Code that ignores fields it does not know needs no change; `a2a/bepleez_a2a.py` reads only `message_id` and `text` of a `question` and was re-run against the test environment (agreement reached).
 - **2026-11-05 — fix (A2A).** When a seller's offer already ends with a question and the seller also sends the separate `question` act, the `text` Part that A2A adds for text-only readers is no longer repeated for the `question` act. The `data` Part (the signed act, with its text) is unchanged. Clients that read the acts see no difference; clients that print every `text` Part no longer show the question twice.
 
 ---
